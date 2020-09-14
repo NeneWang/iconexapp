@@ -1,0 +1,171 @@
+<!-- Here you ask for the iconex and then connect with the stuff -->
+
+{% extends 'base.html' %} {% load static %} {% block content %}
+
+<!-- TODO Here make a simple form for desired username and the iconconnector for all the other stuff -->
+<form action="/post_signup/" method="post">
+  <!-- ADDRESS -->
+
+  {% csrf_token %}
+
+  <div class="my-3 p-3 bg-white rounded shadow-sm">
+    <h1>Sign up</h1>
+    <br />
+    <div class="form-group">
+      <label for="exampleInputUsername">Username</label>
+      <input
+        name="name"
+        type="text"
+        class="form-control"
+        id="exampleInputUsername"
+        aria-describedby="emailHelp"
+        placeholder="Enter username"
+        required
+      />
+      <small id="emailHelp" class="form-text text-muted"
+        >For your summoner avatar.</small
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="exampleInputEmail1">Email</label>
+      <input
+        name="email"
+        type="email"
+        class="form-control"
+        id="exampleInputEmail1"
+        aria-describedby="emailHelp"
+        placeholder="Enter email"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="exampleInputPassword1">Password</label>
+      <input
+        name="password"
+        type="password"
+        class="form-control"
+        id="exampleInputPassword1"
+        placeholder="Password"
+        required
+      />
+    </div>
+
+    <br />
+    <button
+      id="request-address"
+      type="button"
+      class="btn btn-outline-primary custom-btn"
+    >
+      Choose a wallet
+    </button>
+    <small id="wallethelp" class="form-text text-muted"
+      >You need to have installed ICONex wallet for chrome extension</small
+    >
+
+    <div id="response-address" class="mt-3 ml-3">Wallet not selected.</div>
+    <br />
+    <div class="invisible">
+      <p>Or just enter in your wallet address here:</p>
+      <div class="form-group">
+        <label for="icx-address">ICX Adress</label>
+        <input
+          name="icx_address"
+          type="text"
+          class="form-control"
+          id="icx-address"
+          placeholder="ICX adress..."
+          required
+        />
+      </div>
+    </div>
+
+    <br />
+    <button type="submit" class="btn btn-primary btn-lg">Sign up</button>
+  </div>
+</form>
+
+<!-- ICON SDK for Javascript -->
+<script src="https://cdn.jsdelivr.net/gh/icon-project/icon-sdk-js@latest/build/icon-sdk-js.min.js"></script>
+<!-- jQuery 3 -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<!-- bootstrap 4 -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+<!-- CustomEvent Handlers -->
+<script>
+  var iconService = window["icon-sdk-js"];
+  var IconAmount = iconService.IconAmount;
+  var IconConverter = iconService.IconConverter;
+  var IconBuilder = iconService.IconBuilder;
+
+  var requestAddress = document.getElementById("request-address");
+  var responseAddress = document.getElementById("response-address");
+
+  var addressInput = document.getElementById("icx-address");
+
+  window.addEventListener("ICONEX_RELAY_RESPONSE", eventHandler, false);
+
+  // type and payload are in event.detail
+  function eventHandler(event) {
+    var type = event.detail.type;
+    var payload = event.detail.payload;
+    switch (type) {
+      case "RESPONSE_HAS_ACCOUNT":
+        responseHasAccount.innerHTML =
+          "> Result : " +
+          payload.hasAccount +
+          " (" +
+          typeof payload.hasAccount +
+          ")";
+
+        break;
+      case "RESPONSE_HAS_ADDRESS":
+        responseHasAddress.innerHTML =
+          "> Result : " +
+          payload.hasAddress +
+          " (" +
+          typeof payload.hasAddress +
+          ")";
+        break;
+      case "RESPONSE_ADDRESS":
+        fromAddress = payload;
+        addressInput.value = payload;
+        responseAddress.innerHTML = "Wallet selected address: " + payload;
+        jsonRpc0.disabled = false;
+        jsonRpc1.disabled = false;
+        jsonRpc2.disabled = false;
+        jsonRpc3.disabled = false;
+        jsonRpc4.disabled = false;
+        break;
+      case "RESPONSE_JSON-RPC":
+        responseScore.value = JSON.stringify(payload);
+        break;
+      case "CANCEL_JSON-RPC":
+        responseScore.value = null;
+        break;
+      case "RESPONSE_SIGNING":
+        signingData.value = null;
+        responseSigning.innerHTML = "> Signature : " + JSON.stringify(payload);
+        break;
+      case "CANCEL_SIGNING":
+        signingData.value = null;
+        responseSigning.value = "> Signature : ";
+        break;
+      default:
+    }
+  }
+
+  requestAddress.onclick = function () {
+    window.dispatchEvent(
+      new CustomEvent("ICONEX_RELAY_REQUEST", {
+        detail: {
+          type: "REQUEST_ADDRESS",
+        },
+      })
+    );
+  };
+</script>
+
+{% endblock %}
